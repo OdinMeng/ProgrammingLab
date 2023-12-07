@@ -3,10 +3,18 @@
 # 1) ok
 # 2) ok
 # 3) ogni entrata rappresenta una riga con i valori
+# 5a) Gestione eccezioni
 
 class CSVFile():
     def __init__(self, name):
-        self.name = name
+        try:
+            x = open(name, "r")
+        except Exception:
+            print("Errore")
+        else:
+            self.name = name
+        finally:
+            x.close()
 
     def get_data(self):
         l = []
@@ -20,4 +28,5 @@ class CSVFile():
         file.close()
 
         return l
+
 
