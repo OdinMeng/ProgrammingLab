@@ -20,12 +20,16 @@ class CSVFile():
             x.close()
 
     def get_data(self):
+        if not self.can_read:
+            print("Errore")
+            return None
+
         l = []
         file = open(self.name, "r")
         for entrata in file:
             el = entrata.split(",")
             if el[0] != "Date":
-                a = [el[0], el[1][:-1]]
+                a = [el[0], el[1][:-1]] # o basta usare .strip
                 l.append(a)
 
         file.close()

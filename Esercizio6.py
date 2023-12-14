@@ -33,7 +33,7 @@ class CSVFile():
             except:    
                 raise ValueError
 
-        # controllo se gli input di start ed end i.q. interi siano corretti o meno
+        # controllo se gli input di start ed end, in quanto interi, siano corretti o meno
         if (end > 1 and start > end) or (start <= 0 or end < 0):
             raise ValueError
 
@@ -51,7 +51,7 @@ class CSVFile():
                 l.append(el)
             ctr += 1
 
-        if start > ctr-1 or end > ctr-1: # decremento di 1 perchè il contatore parte da 1, ma conto elementi a partire da 0
+        if start > ctr-1 or end > ctr-1: # decremento di 1 perchè il contatore parte da 1
             raise ValueError
             
         file.close()
