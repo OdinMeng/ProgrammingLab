@@ -11,7 +11,7 @@ class CSVFile():
             x = open(name, "r")
             x.readline() # extra
         except Exception:
-            print("Errore")
+            print("Errore file NON leggibile")
             self.can_read = False
         else:
             self.name = name
@@ -20,6 +20,10 @@ class CSVFile():
             x.close()
 
     def get_data(self, start=1, end=None):
+        if not self.can_read:
+            print("Errore file NON leggibile")
+            return None
+
         # sanitizzo il tipi: prima controllo se end è None (ovvero fino alla fine, rappresento end=0 come end=infinito)
         no_end = 0
         if end == None:
@@ -36,10 +40,6 @@ class CSVFile():
         # controllo se gli input di start ed end, in quanto interi, siano corretti o meno
         if (end > 1 and start > end) or (start <= 0 or end < 0):
             raise ValueError
-
-        if not self.can_read:
-            print("Errore")
-            return None
 
         ctr = 1
         l = []
@@ -58,5 +58,21 @@ class CSVFile():
 
         return l
 
+class NumericalCSVFile(CSVFile):
+    def get_data(self, start=1, end=None):
+        super_l = super().get_data(start,end)
+        l = []
+        for i in super_l:
+            try:
+                float(i[1])
+
+            except Exception:
+                print("Errore")
+                l.append([i[0], i[1]])
+
+            else:
+                l.append([i[0], float(i[1])])
+
+        return l
 # dio_cristo = CSVFile("shampoo_sales.csv")
 # print(dio_cristo.get_data(1, 70)) # Come controllo se il "start" non è troppo "grande" per il file? E l'end?
