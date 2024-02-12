@@ -6,7 +6,7 @@ test_1 = exm.CSVTimeSeriesFile(name="data_test_no_eccez.csv")
 data_1 = test_1.get_data()
 res_1 = exm.compute_increments(data_1, "1949", "1951")
 # Controllo se i risultati sono corretti o meno
-expected_values = {"1949-1950": -88, "1950-1951": 48} # da vedere con russo
+expected_values = {"1949-1950": -22, "1950-1951": 36}
 for x in res_1:
     if x not in expected_values:
         raise Exception("Errore in 1.1. : Calcoli mancanti")
@@ -53,26 +53,31 @@ try:
     exm.compute_increments(data_4, 1952, 1953)
     exm.compute_increments(data_4, "ciao", "1952")
     exm.compute_increments(data_4, "1953", "1952") 
-except:
+    exm.compute_increments(data_4, "1952", "1952")
+except Exception as e:
     pass
+
 else:
-    raise Exception("Errore in 2.4. : Il tentativo di calcolare la media degli incremendi è andato a buon fine")
+    raise Exception("Errore in 2.4. : Il tentativo di calcolare la media degli incrementi è andato a buon fine")
 
 print("Secondo test passato!")
+print("====================")
+
 # TEST 3. EDGE CASES (DATI VUOTI, ECCETERA)
 test_5 = exm.CSVTimeSeriesFile(name="data_test_vuoti.csv")
 data_5 = test_5.get_data()
 res_5a = exm.compute_increments(data_5, "1951", "1952")
 res_5b = exm.compute_increments(data_5, "1950", "1952")
-res_5c = exm.compute_increments(data_5, "1949, 1951")
+res_5c = exm.compute_increments(data_5, "1949", "1951")
 
 if res_5a != []:
     raise Exception("Errore in 3.1. : L'output dev'essere una lista vuota")
 
-if res_5b != {"1950-1952": -44}:
+if res_5b != {"1950-1952": 6}:
     raise Exception("Errore in 3.2. : Calcolo errato")
 
 if res_5c != {"1949-1950": -20}:
     raise Exception("Errore in 3.3. : Calcolo errato")
 
 print("Ultimo test passato! Sei a posto!")
+print("====================")
