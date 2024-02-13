@@ -81,3 +81,8 @@ if res_5c != {"1949-1950": -20}:
 
 print("Ultimo test passato! Sei a posto!")
 print("====================")
+
+# TEST EXTRA.
+test_x = exm.CSVTimeSeriesFile(name="data_test_vuoti.csv")
+data_x = test_x.get_data()
+print(exm.compute_increments(data_x, "1949", "1952"))
