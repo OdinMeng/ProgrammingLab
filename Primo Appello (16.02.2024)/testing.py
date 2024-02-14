@@ -85,4 +85,3 @@ print("====================")
 # TEST EXTRA.
 test_x = exm.CSVTimeSeriesFile(name="data_test_vuoti.csv")
 data_x = test_x.get_data()
-print(exm.compute_increments(data_x, "1949", "1952"))

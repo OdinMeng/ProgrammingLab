@@ -4,21 +4,26 @@ class ExamException(Exception):
     pass
 
 def check_int(numero):
+    """
+    Funzione ausiliaria che accetta un qualsiasi (unico) input e controllo se questo input è convertibile univocamente in int
+    (quindi no str, no float, no ..., SOLO int); restituisce un valore booleano True/False
+    In particolare accetta le stringhe e controlla se è convertibile univocamente in int. (cosa non presente con isistance!)
+    check_int: x -> Bool
+    """
     try:
         int(numero)
+        float(numero)
     except:
         return False
     
-    if float(numero) == int(numero):
+    if float(numero) == int(numero): # controlla se non c'è la parte frazionaria (ovvero dopo la virgola), quindi se è intero
         return True
     else:
         return False
-    
-    # controllo se una data stringa (o anche numero) è ESCLUSIVAMENTE int (quindi no float) (roba ausiliaria)
 
-class CSVTimeSeriesFile():
+class CSVTimeSeriesFile(): # ricreo la classe da capo
     """
-    Classe per leggere file CSV convertire i dati sul file CSV in lista nestata del tipo
+    Classe per leggere file CSV, convertire i dati sul file CSV in una lista nestata del tipo
     [
         [data, numero]
         ...
@@ -27,32 +32,54 @@ class CSVTimeSeriesFile():
     """
     
     def __init__(self, name):
-        self.name = name
         try:
-            file = open(self.name, "r")
+            file = open(name, "r")
             file.readline()
             file.close()
 
         except:
             raise ExamException("File non leggibile o inesistente")
         
+        # controllo se il file è un file CSV
+        elementi = name.split(".")
+        if (name == "csv" and elementi[-1] == "csv") or (name != "csv" and elementi[1] != "csv"): # casi speciali per cui si accetta anche "csv.csv" ma non "csv" (e basta)
+            print("Warning: il file esibito non è del tipo .csv; metodo get_data() disabilitata")
+            self.is_csv = False
+
+        else:
+            self.is_csv = True
+
+        self.name = name
+
+
     def get_data(self):
+        if not self.is_csv:
+            raise ExamException("Errore: impossibile ottenere dati da questo file, dato che non è del tipo .csv")
+        
         file = open(self.name, "r")
         data = []
 
-        ultimo_anno = -1
+        ultimo_anno = -1 
         ultimo_mese = -1 
         # le ultime due var. serviranno per "iniziare" il controllo dell'ordinamento delle date; dato che stiamo parlando di line aeree, è sicuro assumerli come -1 (1 a.C.)
-        
-        if file.readline().strip() != "date,passengers":
-            raise ExamException("Input scorretto: la tabella data non riferisce allo storico voluto")
-            # forse si potrebbe semplicemente dare un avvertimento
+        # OSS. in realtà ultimo_anno = 1948 andrebbe anche bene
+
+        # controllo se il file CSV si riferisce alla tipologia di dati corretto (ovvero di linee aeree)
+        instestazione = file.readline().strip()
+        try:
+            instestazione[0:15]
+        except:
+            raise ExamException("Input scorretto: il storico non si riferisce al contenuto voluto (linee aeree)")
+        else:
+            if instestazione[0:15]!= "date,passengers": # l'intestazione può avere altre colonne aggiuntive
+                raise ExamException("Input scorretto: il storico non si riferisce al contenuto voluto (linee aeree)")
+        # forse si potrebbe semplicemente dare un avvertimento (warning) ?
         
         # inizio a controllare i dati
         for riga in file:
             elementi = riga.split(",")
 
-            # controllo se la riga ha almeno due elementi su cui basarsi (data e passeggere)
+            # controllo se la riga ha almeno due elementi su cui basarsi (data e passeggeri)
             try:
                 elementi[0]
                 elementi[1]
@@ -63,11 +90,11 @@ class CSVTimeSeriesFile():
 
             # controllo se il dato a dx. è corretto (altrimenti vado avanti e lo scarto via)
             if not check_int(elementi[1]):
-                continue # non è int oppure è float
+                continue # non è int oppure è float (non avrebbe senso...)
 
             passeggeri = int(elementi[1])
             if passeggeri < 0:
-                continue # minore di zero; invalido
+                continue # minore di zero; invalido 
 
             # controllo se l'elemento della colonna a sx è effettivamente una data (ovvero del tipo '([0-9]*)-([0-9]*)' )
             try:
@@ -75,7 +102,7 @@ class CSVTimeSeriesFile():
             except:
                 continue # ignoro     
 
-            # controllo se la data va bene o meno (tipo)
+            # controllo se la data va bene o meno (se sono int?)
             anno, mese = elementi[0].split("-")
             if not (check_int(mese) and check_int(anno)):
                 continue # uno dei numeri non è strettamente int
@@ -94,12 +121,14 @@ class CSVTimeSeriesFile():
             if ultimo_anno == anno and ultimo_mese >= mese:
                 raise ExamException("I dati non sono ordinati (mese) o ci sono duplicati di anno e mese") 
             
+            # ---
             ultimo_anno = anno
             ultimo_mese = mese
             # ¿ va tutto bene ? Allora re-imposto l'ultimo anno e l'ultimo mese come quello attuale, per prepararmi alla prox. iter.
             
             # tutto va bene, quindi inserisco l'elemento in data output
             data.append([elementi[0], passeggeri])
+            # vado alla prossima riga
 
         file.close()
         return data
@@ -114,7 +143,7 @@ def compute_increments(time_series, first_year, last_year):
     # NOTA: Non serve controllare time_series, dato dal modo che lo uso (ovvero con ---.get_data()), quest'ultima ha una certa forma garantita.
 
     # controllo input
-    if not(type(first_year)== str and type(last_year==str)):
+    if not(isinstance(first_year, str) and isinstance(last_year, str)):
         raise ExamException("Le date date non sono date in forma stringa")
         
     increments = {}
@@ -148,7 +177,6 @@ def compute_increments(time_series, first_year, last_year):
     if not estremo_presente:
         raise ExamException("Input non valido; gli estremi degli anni non presenti nel CSV")
 
-    calcolando = False
     ultimo_elemento = 0
     mesi = 0
     medie = {i: None for i in range(first_year_num, last_year_num+1)} # genera un dizionario temporaneo di medie per ogni anno (None default, in caso di casi eccezionali)
@@ -165,7 +193,6 @@ def compute_increments(time_series, first_year, last_year):
 
             first_year_num = anno 
             ultimo_elemento = first_year_num
-            calcolando = False
             mesi = 0
 
         if first_year_num > anno:
@@ -176,12 +203,11 @@ def compute_increments(time_series, first_year, last_year):
             break # sono troppo avanti, termino l'iterazione
 
         if first_year_num == anno: # bingo, inizio i calcoli (o li proseguo)
-            if not calcolando: # devo instanziare il primo numero, ri-impostando da None a qualcosa
+            if mesi == 0: # devo instanziare il primo numero, ri-impostando da None a qualcosa
                 medie[first_year_num] = passeggeri
                 mesi = 1
-                calcolando = True
 
-            else:
+            elif mesi > 0:
                 medie[first_year_num] += passeggeri
                 mesi += 1
 
