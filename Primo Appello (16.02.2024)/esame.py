@@ -93,8 +93,8 @@ class CSVTimeSeriesFile(): # ricreo la classe da capo
                 continue # non è int oppure è float (non avrebbe senso...)
 
             passeggeri = int(elementi[1])
-            if passeggeri < 0:
-                continue # minore di zero; invalido 
+            if passeggeri <= 0:
+                continue # minore di zero O nullo; invalido 
 
             # controllo se l'elemento della colonna a sx è effettivamente una data (ovvero del tipo '([0-9]*)-([0-9]*)' )
             try:
@@ -113,6 +113,10 @@ class CSVTimeSeriesFile(): # ricreo la classe da capo
             # controllo se il mese va bene (che non sia oltre il dicembre... undicembre?)
             if mese > 12:
                 continue
+
+            if anno < 0:
+                continue
+             # ignora anni negativi (dalla consegna si potrebbe pure ignorare gli anni che non stanno nell'intervallo specificato nel testo)
 
             # controllo se la data va bene (ordinamento); ultimo e finale controllo dei dati
             if ultimo_anno > anno:
@@ -142,6 +146,10 @@ def compute_increments(time_series, first_year, last_year):
 
     # NOTA: Non serve controllare time_series, dato dal modo che lo uso (ovvero con ---.get_data()), quest'ultima ha una certa forma garantita.
 
+    # NOTA 2. Magari controllo se time_series è vuota o meno
+    if time_series == []:
+        raise ExamException("La serie temporale è vuota (ergo in ogni caso gli estremi non sono compresi nel CSV)")
+    
     # controllo input
     if not(isinstance(first_year, str) and isinstance(last_year, str)):
         raise ExamException("Le date date non sono date in forma stringa")
