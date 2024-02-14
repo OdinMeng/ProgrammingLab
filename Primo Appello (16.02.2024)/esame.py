@@ -98,7 +98,8 @@ class CSVTimeSeriesFile(): # ricreo la classe da capo
 
             # controllo se l'elemento della colonna a sx è effettivamente una data (ovvero del tipo '([0-9]*)-([0-9]*)' )
             try:
-                anno, mese = elementi[0].split("-")
+                anno, mese = elementi[0].split("-") 
+                # oss. è interessante vedere che questa riga scarta anche i casi in cui l'anno o il mese è negativo
             except:
                 continue # ignoro     
 
@@ -110,8 +111,8 @@ class CSVTimeSeriesFile(): # ricreo la classe da capo
             anno = int(anno)
             mese = int(mese)
             
-            # controllo se il mese va bene (che non sia oltre il dicembre... undicembre?)
-            if mese > 12:
+            # controllo se il mese va bene (che non sia oltre il dicembre... undicembre?... oppure l'antigennaio)
+            if mese > 12 or mese <= 0:
                 continue
 
             if anno < 0:
@@ -191,6 +192,10 @@ def compute_increments(time_series, first_year, last_year):
         
     for serie in time_series:
         data = serie[0].split("-")
+        if len(data) != 2:
+            continue 
+            # ignora i casi anomali; ad esempio se ho il dato [-999--1],[100] (che dovrebbe essere impossibile, a priori), allora salto dato che avrei ['','999','','1']
+        
         passeggeri = serie[1]
         anno = int(data[0])
         # controllo "dove sono messo con la data attuale"
