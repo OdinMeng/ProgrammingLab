@@ -73,7 +73,7 @@ class CSVTimeSeriesFile(): # ricreo la classe da capo
         else:
             if instestazione[0:15]!= "date,passengers": # l'intestazione può avere altre colonne aggiuntive
                 print("! WARNING ! Input scorretto: il storico non si riferisce al contenuto voluto (linee aeree)")
-        # o si può dare anche alzare un exception, però forse sarebbe eccessivo
+        # o si può anche alzare un exception, però forse sarebbe eccessivo
         
         # inizio a controllare i dati
         for riga in file:
@@ -147,6 +147,7 @@ def compute_increments(time_series, first_year, last_year):
 
     # NOTA: Non serve controllare time_series, dato dal modo che lo uso (ovvero con ---.get_data()), quest'ultima ha una certa forma garantita.
 
+    # ---------- FASE PRELIMINARE: I CONTROLLI
     # NOTA 1. In caso controllo se time_series sia una lista o meno
     if not isinstance(time_series, list):
         raise ExamException("Input time_series invalido")
@@ -173,23 +174,27 @@ def compute_increments(time_series, first_year, last_year):
     if first_year_num >= last_year_num:
         raise ExamException("Le date non sono accettabili (il primo anno è più grande o uguale dell'ultimo anno)")
     
-    ultimo_elemento = 0
-    mesi = 0
+    # ----------- FASE 1: IL CALCOLO DELLE MEDIE ANNO PER ANNO
+    ultimo_elemento = 0 # servira per dopo
+    mesi = 0 # contatore dei mesi con dati esistenti e validi per un certo anno
     medie = {i: None for i in range(first_year_num, last_year_num+1)} # genera un dizionario temporaneo di medie per ogni anno (None default, in caso di casi eccezionali)
     pivot = first_year_num # sarà il punto di partenza per l'iterazione, senza dover modificare first_year_num
 
     for serie in time_series:
         data = serie[0].split("-")
         if len(data) != 2:
+            print("! WARNING ! Presenti anomalie nella serie temporale esibita. Dato skippato.")
             continue 
             # ignora i casi anomali; ad esempio se ho il dato [-999--1],[100] (che dovrebbe essere impossibile, a priori), allora salto dato che avrei ['','999','','1']
+            # gli altri casi anomali sarebbero quelli in cui il numero delle colonne non è adeguato (o minore o maggiore)
         
         passeggeri = serie[1]
         anno = int(data[0])
-        # controllo "dove sono messo con la data attuale"
+
+        # controllo "dove sono messo con la data attuale"; ovvero confronto l'anno di pivot con l'anno attuale, in stato di iterazione
         if pivot < anno:
             # o ho finito i calcoli o i dati non ci sono mai stati, faccio i conti e ricomincio
-            if mesi != 0:
+            if mesi > 0:
                 medie[pivot] = medie[pivot]/mesi
 
             pivot = anno 
@@ -197,22 +202,22 @@ def compute_increments(time_series, first_year, last_year):
             mesi = 0
 
         if pivot > anno:
-            continue # sono troppo avanti, vado avanti finchè ho la data giusta
+            continue # sono troppo indietro, vado avanti finchè ho la data giusta
 
         if last_year_num < anno:
             ultimo_elemento = pivot
             break # sono troppo avanti, termino l'iterazione
 
         if pivot == anno: # bingo, inizio i calcoli (o li proseguo)
-            if mesi == 0: # devo instanziare il primo numero, ri-impostando da None a qualcosa
+            if mesi == 0: # devo instanziare il primo numero, ri-impostando da None a qualcosa per le medie dell'anno
                 medie[pivot] = passeggeri
                 mesi = 1
 
-            elif mesi > 0:
+            elif mesi > 0: # proseguo il calcolo delle medie
                 medie[pivot] += passeggeri
                 mesi += 1
 
-    # OSS. Quando termina il ciclo for, non faccio calcolo per l'ultima media. Quindi "la faccio a mano" con le seguenti righe
+    # OSS. Quando termina il ciclo for, non faccio calcolo per l'ultima media dato che l'iterazione è stata interrotta. Quindi "la faccio a mano" con le seguenti righe
 
     # ultimo calcolo per la media dell'ultimo anno
     if mesi != 0:
@@ -221,7 +226,8 @@ def compute_increments(time_series, first_year, last_year):
     # prima di confermare il risultato, controllo se gli estremi erano presenti nel CSV o meno, sfruttando l'iterazione appena svolta
     if medie[first_year_num] == None and medie[last_year_num] == None:
         raise ExamException("Gli estremi non sono presenti nel dataset CSV")
-    
+
+    # ------------ FASE FINALE: Il calcolo dell'output    
     # istanzio il risultato
     increments = {}
 
