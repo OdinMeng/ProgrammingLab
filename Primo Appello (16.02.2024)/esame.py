@@ -29,6 +29,7 @@ class CSVTimeSeriesFile(): # ricreo la classe da capo
         ...
     ]
     tramite il metodo get_data(). Inoltre controlla se il file esiste o meno, oppure se è leggibile o meno.
+    Nuova aggiunta: controlla se il file è di estensione .csv
     """
     
     def __init__(self, name):
