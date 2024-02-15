@@ -69,11 +69,11 @@ class CSVTimeSeriesFile(): # ricreo la classe da capo
         try:
             instestazione[0:15]
         except:
-            raise ExamException("Input scorretto: il storico non si riferisce al contenuto voluto (linee aeree)") # sicuramente la stringa ha meno di 15 caratteri, ovvero non può avere l'intestazione giusta
+            print("! WARNING ! Input scorretto: il storico non si riferisce al contenuto voluto (linee aeree)") # sicuramente la stringa ha meno di 15 caratteri, ovvero non può avere l'intestazione giusta
         else:
             if instestazione[0:15]!= "date,passengers": # l'intestazione può avere altre colonne aggiuntive
-                raise ExamException("Input scorretto: il storico non si riferisce al contenuto voluto (linee aeree)")
-        # forse si potrebbe semplicemente dare un avvertimento (warning) ?
+                print("! WARNING ! Input scorretto: il storico non si riferisce al contenuto voluto (linee aeree)")
+        # o si può dare anche alzare un exception, però forse sarebbe eccessivo
         
         # inizio a controllare i dati
         for riga in file:
