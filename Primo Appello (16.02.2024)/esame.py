@@ -69,7 +69,7 @@ class CSVTimeSeriesFile(): # ricreo la classe da capo
         try:
             instestazione[0:15]
         except:
-            raise ExamException("Input scorretto: il storico non si riferisce al contenuto voluto (linee aeree)")
+            raise ExamException("Input scorretto: il storico non si riferisce al contenuto voluto (linee aeree)") # sicuramente la stringa ha meno di 15 caratteri, ovvero non può avere l'intestazione giusta
         else:
             if instestazione[0:15]!= "date,passengers": # l'intestazione può avere altre colonne aggiuntive
                 raise ExamException("Input scorretto: il storico non si riferisce al contenuto voluto (linee aeree)")
@@ -147,16 +147,18 @@ def compute_increments(time_series, first_year, last_year):
 
     # NOTA: Non serve controllare time_series, dato dal modo che lo uso (ovvero con ---.get_data()), quest'ultima ha una certa forma garantita.
 
+    # NOTA 1. In caso controllo se time_series sia una lista o meno
+    if not isinstance(time_series, list):
+        raise ExamException("Input time_series invalido")
+
     # NOTA 2. Magari controllo se time_series è vuota o meno
-    if time_series == []:
+    if time_series == []: # oppure len(time_series) == 0
         raise ExamException("La serie temporale è vuota (ergo in ogni caso gli estremi non sono compresi nel CSV)")
     
-    # controllo input
+    # controllo input (anni)
     if not(isinstance(first_year, str) and isinstance(last_year, str)):
         raise ExamException("Le date date non sono date in forma stringa")
         
-    increments = {}
-
     if not (check_int(first_year) and check_int(last_year)):
         raise ExamException("Le date date non sono interi")
     
@@ -226,11 +228,14 @@ def compute_increments(time_series, first_year, last_year):
 
     # OSS. Quando termina il ciclo for, non faccio calcolo per l'ultima media. Quindi "la faccio a mano" con le seguenti righe
 
-    # ultimo calcolo per la media dell'utimo anno
+    # ultimo calcolo per la media dell'ultimo anno
     if mesi != 0:
         medie[ultimo_elemento] = medie[ultimo_elemento]/mesi
 
-    for anno in medie: # ora faccio i conti per ottenere gli increments
+    # istanzio il risultato
+    increments = {}
+
+    for anno in medie: # ora faccio i conti per ottenere gli increments ed assegnarli all'output finale
         if medie[anno] is None:
             continue # se l'anno non ha avuto nessun dato, vado al prossimo anno
 
@@ -238,6 +243,7 @@ def compute_increments(time_series, first_year, last_year):
             for prossimo_anno in medie: # ora cerco il prossimo anno con media non-vuota
                 if prossimo_anno <= anno:
                     continue # vado avanti, sto guardando ancora indietro
+                    # Oss. migliorabile usando un for + range (?); anzi in generale si poteva farlo già dall'inizio
                 
                 else:
                     if medie[prossimo_anno] is None:
