@@ -150,7 +150,7 @@ def compute_increments(time_series, first_year, last_year):
     # ---------- FASE PRELIMINARE: I CONTROLLI
     # NOTA 1. In caso controllo se time_series sia una lista o meno
     if not isinstance(time_series, list):
-        raise ExamException("Input time_series invalido")
+        raise ExamException("Input time_series invalido: non è una lista")
 
     # NOTA 2. Magari controllo se time_series è vuota o meno
     if time_series == []: # oppure len(time_series) == 0
@@ -182,14 +182,17 @@ def compute_increments(time_series, first_year, last_year):
 
     for serie in time_series:
         data = serie[0].split("-")
-        if len(data) != 2:
-            print("! WARNING ! Presenti anomalie nella serie temporale esibita. Dato skippato.")
+        if len(data) != 2 or len(serie) != 2: # in genere questo NON dovrebbe accadere
+            print(f"! WARNING ! Presenti anomalie nella serie temporale esibita. Dato skippato. \n Dato anomalo: {serie}")
             continue 
             # ignora i casi anomali; ad esempio se ho il dato [-999--1],[100] (che dovrebbe essere impossibile, a priori), allora salto dato che avrei ['','999','','1']
             # gli altri casi anomali sarebbero quelli in cui il numero delle colonne non è adeguato (o minore o maggiore)
-        
+        elif not(check_int(data[0]) and check_int(data[1]) and isinstance(serie[1], int)):
+            print(f"! WARNING ! Presenti anomalie nella serie temporale esibita. Dato skippato. \n Dato anomalo: {serie}")
+            continue 
+
         passeggeri = serie[1]
-        anno = int(data[0])
+        anno = int(data[0]) # in realtà il mese non m'interessa più dato che è stato già controllato con get_data()
 
         # controllo "dove sono messo con la data attuale"; ovvero confronto l'anno di pivot con l'anno attuale, in stato di iterazione
         if pivot < anno:
@@ -209,6 +212,7 @@ def compute_increments(time_series, first_year, last_year):
             break # sono troppo avanti, termino l'iterazione
 
         if pivot == anno: # bingo, inizio i calcoli (o li proseguo)
+            ultimo_elemento = pivot
             if mesi == 0: # devo instanziare il primo numero, ri-impostando da None a qualcosa per le medie dell'anno
                 medie[pivot] = passeggeri
                 mesi = 1
