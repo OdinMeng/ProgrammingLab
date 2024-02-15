@@ -173,25 +173,11 @@ def compute_increments(time_series, first_year, last_year):
     if first_year_num >= last_year_num:
         raise ExamException("Le date non sono accettabili (il primo anno è più grande o uguale dell'ultimo anno)")
     
-    # vedo se gli estremi (input) sono presenti nel file CSV, in caso di esito negativo alzo eccez. (come previsto dalla consgn.)
-    # IDEA. Itero la liste delle serie temporali (time_series), settando un flag; se uno degli estremi è presente, termino il ciclo e altero il flag
-    # Altrimenti se termino il ciclo senza alterare il flag, allora ciò vuol dire che non sono stati trovati gli estremi.
-    estremo_presente = 0
-
-    for serie in time_series:
-        data = serie[0].split("-")
-        anno = data[0]
-        if first_year == anno or last_year == anno:
-            estremo_presente = 1
-            break
-
-    if not estremo_presente:
-        raise ExamException("Input non valido; gli estremi degli anni non presenti nel CSV")
-
     ultimo_elemento = 0
     mesi = 0
     medie = {i: None for i in range(first_year_num, last_year_num+1)} # genera un dizionario temporaneo di medie per ogni anno (None default, in caso di casi eccezionali)
-        
+    pivot = first_year_num # sarà il punto di partenza per l'iterazione, senza dover modificare first_year_num
+
     for serie in time_series:
         data = serie[0].split("-")
         if len(data) != 2:
@@ -201,29 +187,29 @@ def compute_increments(time_series, first_year, last_year):
         passeggeri = serie[1]
         anno = int(data[0])
         # controllo "dove sono messo con la data attuale"
-        if first_year_num < anno:
+        if pivot < anno:
             # o ho finito i calcoli o i dati non ci sono mai stati, faccio i conti e ricomincio
             if mesi != 0:
-                medie[first_year_num] = medie[first_year_num]/mesi
+                medie[pivot] = medie[pivot]/mesi
 
-            first_year_num = anno 
-            ultimo_elemento = first_year_num
+            pivot = anno 
+            ultimo_elemento = pivot
             mesi = 0
 
-        if first_year_num > anno:
+        if pivot > anno:
             continue # sono troppo avanti, vado avanti finchè ho la data giusta
 
         if last_year_num < anno:
-            ultimo_elemento = first_year_num
+            ultimo_elemento = pivot
             break # sono troppo avanti, termino l'iterazione
 
-        if first_year_num == anno: # bingo, inizio i calcoli (o li proseguo)
+        if pivot == anno: # bingo, inizio i calcoli (o li proseguo)
             if mesi == 0: # devo instanziare il primo numero, ri-impostando da None a qualcosa
-                medie[first_year_num] = passeggeri
+                medie[pivot] = passeggeri
                 mesi = 1
 
             elif mesi > 0:
-                medie[first_year_num] += passeggeri
+                medie[pivot] += passeggeri
                 mesi += 1
 
     # OSS. Quando termina il ciclo for, non faccio calcolo per l'ultima media. Quindi "la faccio a mano" con le seguenti righe
@@ -232,6 +218,10 @@ def compute_increments(time_series, first_year, last_year):
     if mesi != 0:
         medie[ultimo_elemento] = medie[ultimo_elemento]/mesi
 
+    # prima di confermare il risultato, controllo se gli estremi erano presenti nel CSV o meno, sfruttando l'iterazione appena svolta
+    if medie[first_year_num] == None and medie[last_year_num] == None:
+        raise ExamException("Gli estremi non sono presenti nel dataset CSV")
+    
     # istanzio il risultato
     increments = {}
 

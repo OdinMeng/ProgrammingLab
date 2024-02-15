@@ -49,16 +49,23 @@ else:
 # 4. Chiamata funzione sbagliata
 test_4 = exm.CSVTimeSeriesFile(name="data_test_no_eccez.csv")
 data_4 = test_4.get_data()
-try:
-    exm.compute_increments(data_4, 1952, 1953)
-    exm.compute_increments(data_4, "ciao", "1952")
-    exm.compute_increments(data_4, "1953", "1952") 
-    exm.compute_increments(data_4, "1952", "1952")
-except Exception as e:
-    pass
+to_do = [
+    [1952, 1953],
+    ["ciao", "1952"],
+    ["1953", "1952"] ,
+    ["1952", "1952"],
+    ["1939", "2010"]
+]
 
-else:
-    raise Exception("Errore in 2.4. : Il tentativo di calcolare la media degli incrementi è andato a buon fine")
+for tentativi in to_do: 
+    try:
+        exm.compute_increments(data_4, tentativi[0], tentativi[1])
+    except Exception as e:
+        print(e)
+        pass
+
+    else:
+        raise Exception("Errore in 2.4. : Il tentativo di calcolare la media degli incrementi è andato a buon fine")
 
 print("Secondo test passato!")
 print("====================")
@@ -71,6 +78,7 @@ res_5b = exm.compute_increments(data_5, "1950", "1952")
 res_5c = exm.compute_increments(data_5, "1949", "1951")
 
 if res_5a != []:
+    print(res_5a)
     raise Exception("Errore in 3.1. : L'output dev'essere una lista vuota")
 
 if res_5b != {"1950-1952": 6}:
