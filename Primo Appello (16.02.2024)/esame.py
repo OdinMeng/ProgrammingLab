@@ -237,7 +237,7 @@ def compute_increments(time_series, first_year, last_year):
     increments = {}
 
     for anno in medie: # ora faccio i conti per ottenere gli increments ed assegnarli all'output finale
-        if medie[anno] is None:
+        if medie[anno] == None:
             continue # se l'anno non ha avuto nessun dato, vado al prossimo anno
 
         else:
@@ -247,7 +247,7 @@ def compute_increments(time_series, first_year, last_year):
                     # Oss. migliorabile usando un for + range (?); anzi in generale si poteva farlo già dall'inizio
                 
                 else:
-                    if medie[prossimo_anno] is None:
+                    if medie[prossimo_anno] == None:
                         continue # vado avanti
 
                     else:
